@@ -384,11 +384,11 @@ Sawari was deliberately built with **zero frameworks, zero bundlers, and zero bu
 
 ## 📡 IoT Hardware
 
-Sawari includes two custom IoT devices for real-time fleet intelligence.
+Sawari includes two custom IoT devices for real-time fleet intelligence. The hardware ecosystem pushes data directly into Sawari's APIs to update vehicle positions and passenger counts in real-time.
 
 ### 🛰️ GPS Telemetry Device
 
-An ESP32-based GPS tracker designed for automotive deployment in Kathmandu's bus fleet.
+An ESP32-based GPS tracker designed for automotive deployment in Kathmandu's bus fleet. It streams real-time geolocation of vehicles to the `hardware-api/gps.php` endpoint.
 
 <table>
 <tr><td>
@@ -400,7 +400,7 @@ An ESP32-based GPS tracker designed for automotive deployment in Kathmandu's bus
 | **Display** | 1.3" OLED (SH1106/SSD1306, I2C, 128×64) |
 | **Power** | 12V vehicle → LM2596 buck → 5V |
 | **LEDs** | Power (green), WiFi (blue), GPS (yellow), Data (red) |
-| **Data Rate** | 1 update every 2 seconds |
+| **Data Rate** | 1 update every 2 seconds via JSON POST |
 | **Offline Buffer** | 500 records (~100KB) |
 | **Operating Temp** | -20°C to +70°C |
 | **Enclosure** | IP65 rated, 100×68×50mm |
@@ -425,6 +425,9 @@ An ESP32-based GPS tracker designed for automotive deployment in Kathmandu's bus
 </td></tr>
 </table>
 
+**How It Works:**
+The module continuously monitors coordinates, speed (km/h), and heading, pushing data in a JSON payload containing `bus_id`, `latitude`, `longitude`, `speed`, and `direction`. It buffers records locally when offline.
+
 **Libraries**: TinyGPSPlus · U8g2 · WiFiManager
 
 **LED Status Reference:**
@@ -436,22 +439,29 @@ An ESP32-based GPS tracker designed for automotive deployment in Kathmandu's bus
 | 🟢 | 🔵 | ⚫ | ⚫ | GPS searching — WiFi ready |
 | 🟢 | ⚫ | ⚫ | ⚫ | Startup / connecting |
 
-### 📷 Bus Camera System
+### 📷 Bus Camera System (Passenger Count)
 
-ESP32-CAM (OV3660) captive portal for onboard passenger monitoring and image capture.
+An AI Thinker ESP32-CAM module installed onboard to capture images and estimate passenger density. It POSTs images automatically to the `hardware-api/passenger.php` endpoint.
 
 | Feature | Details |
 |---------|---------|
-| **Board** | AI Thinker ESP32-CAM, PSRAM enabled, 240 MHz |
+| **Board** | AI Thinker ESP32-CAM (PSRAM enabled, 240 MHz) |
 | **Sensor** | OV3660 (800×600 JPEG recommended) |
-| **Access Point** | `bus#1` — auto captive redirect to `1.2.3.4` |
-| **Live Feed** | Real-time camera stream via web UI |
-| **Recording** | SD card MJPEG — 10-second segments |
-| **Auto Upload** | 1 image per minute to Sawari API |
-| **Web UI** | Live feed, playback, flash control, debug console, Wi-Fi scan |
-| **Storage** | Auto cleanup at 90% SD usage |
-| **Capture Interval** | 10 seconds (configurable) |
+| **Data Push** | Uploads 1 image every 30 seconds via `multipart/form-data` |
+| **AI Processing** | Images are analyzed via OpenRouter Vision AI (Gemini 2.0 Flash / Llama 4 Scout) to count passengers |
+| **Configuration** | Captive portal via WiFiManager (Hold BOOT button for 3s to enter config mode) |
+| **Persistence** | Wi-Fi credentials, API URL, and Vehicle ID saved to SPIFFS |
+| **LED Feedback**| GPIO 4 (Flash LED) blinks during upload; GPIO 33 (Status LED) for heartbeat |
+| **Live Feed** | Real-time camera stream via AP mode web UI |
 | **Power** | 12V vehicle → buck converter → 5V (~150mA average) |
+
+**AI Fallback Chain:**
+When an image is received, the server uses a model fallback chain to ensure reliability in counting passengers:
+1. `google/gemini-2.0-flash-001` (primary)
+2. `google/gemini-flash-1.5` (fallback)
+3. `meta-llama/llama-4-scout:free` (final fallback)
+
+The detected passenger count directly updates the vehicle's `passengers` capacity data within Sawari to alert users in real time.
 
 ---
 
