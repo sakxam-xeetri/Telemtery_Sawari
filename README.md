@@ -1,9 +1,12 @@
 <p align="center">
-  <img src="logo/sawari%20logo.png" alt="Sawari Logo" width="220"/>
+  <img src="logo/logo-transparent.png" alt="Sawari Logo" width="220"/>
 </p>
 
 <h1 align="center">🚌 Sawari — सवारी</h1>
 <h3 align="center">AI-Powered Public Transit Navigation for Kathmandu Valley</h3>
+<p align="center">
+  <img src="sawari.jpeg" alt="Sawari Logo" width="600"/>
+</p
 
 <p align="center">
   <em>Your smart companion for navigating buses, tempos, and microbuses — with real routes, live fares, and AI-powered guidance.</em>
