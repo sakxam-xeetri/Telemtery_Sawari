@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo/logo-transparent.png" alt="Sawari Logo" width="220"/>
+  <img src="logo/sawari%20logo.png" alt="Sawari Logo" width="220"/>
 </p>
 
 <h1 align="center">🚌 Sawari — सवारी</h1>
